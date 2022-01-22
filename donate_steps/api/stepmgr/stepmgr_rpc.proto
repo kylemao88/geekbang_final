@@ -1,0 +1,28 @@
+//
+syntax = "proto3";
+package stepmgr;
+option go_package = "git.code.oa.com/gongyi/donate_steps/api/stepmgr";
+
+import "common_meta.proto";
+
+message GetUsersStepsRequest{
+    repeated string user_ids = 1;
+    bool range_flag = 2; // if set range flag, startTime & endTime must be set
+    string start_time = 3;
+    string end_time = 4;
+}
+
+message GetUsersStepsResponse{
+    metadata.CommonHeader header = 1;
+    map<string, metadata.UserSteps> user_step = 2;
+}
+
+message SetUsersStepsRequest{
+    map<string, metadata.UserSteps> user_step = 1;
+    bool background = 2; // background call
+}
+
+message SetUsersStepsResponse{
+    metadata.CommonHeader header = 1;
+}
+

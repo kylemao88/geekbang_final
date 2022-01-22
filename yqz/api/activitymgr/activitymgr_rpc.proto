@@ -1,0 +1,409 @@
+//
+syntax = "proto3";
+package activitymgr;
+option go_package = "git.code.oa.com/gongyi/yqz/api/activitymgr";
+
+import "common_meta.proto";
+
+// 查询活动
+message QueryActivity{
+    string aid = 1;
+}
+
+message QueryActivityResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    metadata.CustomizedActivity activity = 2;
+    Status status = 3;
+}
+
+
+// 创建活动
+message CreateActivityRequest{
+    metadata.Activity activity = 1;
+    metadata.MatchInfo match_info = 2;
+    metadata.MatchRule match_rule = 3;
+    string oid = 4;
+    string appid = 5;
+    string union_id = 6;
+    repeated string white_list = 7;
+}
+
+message CreateActivityResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    metadata.CustomizedActivity activity = 2;
+    Status status = 3;
+}
+
+// 更新定制型活动状态
+message UpdateActivityStatusRequest{
+    string aid = 1;  // 活动id
+    int32 status = 2;  // 活动状态
+}
+
+message UpdateActivityStatusResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    Status status = 2;
+}
+
+// 查询小队
+message QueryTeamsRequest{
+    string aid = 1;
+    string oid = 2;
+    repeated string team_ids = 3;
+}
+
+message QueryTeamsResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    repeated metadata.Team teams = 2;
+    Status status = 3;
+    map<string, bool> is_watch = 4; // tid - watch?
+}
+
+// 创建小队
+message CreateTeamRequest{
+    metadata.Team team = 1;
+    string oid = 2;
+    string appid = 3;
+    string union_id = 4;
+}
+
+message CreateTeamResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    metadata.Team team = 2;
+    Status status = 3;
+}
+
+message JoinActivityRequest{
+    string oid = 1;
+    string aid = 2;
+    string appid = 3;
+    string uni_id = 4;
+    string phone_num = 5;
+}
+
+message JoinActivityResponse{
+    metadata.CommonHeader header = 1;
+}
+
+message JoinTeamRequest{
+    string oid = 1;
+    string aid = 2;
+    string tid = 3;
+    bool   join = 4;
+    string appid = 5;
+    string uni_id = 6;
+    string phone_num = 7;
+}
+
+message JoinTeamResponse{
+    metadata.CommonHeader header = 1;
+    string team_id = 2;
+    string team_name = 3;
+}
+
+message ActivityTeamRankRequest{
+    string aid = 1;
+    int64  page = 2;
+    int64  size = 3;
+    string rank_type = 4;
+    string oid = 5;
+}
+
+message ActivityTeamRank {
+    int64 rank = 1;
+    string name = 2;
+    string head = 3;
+    int64 total_users = 4;
+    int64 total_steps = 5;
+    string aid = 6;
+    string team_id = 7;
+    int64 total_funds = 8;
+}
+
+message ActivityTeamRankResponse{
+    metadata.CommonHeader header = 1;
+    string update_time = 2;
+    int64 total = 3;
+    repeated ActivityTeamRank list = 4;
+    int64 teamRank =5;
+}
+
+message ActivityUserRankRequest{
+    string aid = 1;
+    int64  page = 2;
+    int64  size = 3;
+    string rank_type = 4;
+    string oid = 5;
+}
+
+message ActivityUserRank {
+    int64 rank = 1;
+    string nick = 2;
+    string head = 3;
+    int64 donate_money = 4;
+    int64 total_steps = 5;
+    int64 today_steps = 6;
+    string oid = 7;
+    string create_time = 8;
+    int64 total_fund = 9;
+}
+
+message ActivityUserRankResponse{
+    metadata.CommonHeader header = 1;
+    string update_time = 2;
+    int64 total = 3;
+    repeated ActivityUserRank list = 4;
+    int64 userRank =5;
+    
+}
+
+message TeamUserRankRequest{
+    string aid = 1;
+    string tid = 2;
+    int64  page = 3;
+    int64  size = 4;
+    string oid = 5;
+}
+
+message TeamUserRank {
+    int64 rank = 1;
+    string nick = 2;
+    string head = 3;
+    int64 donate_money = 4;
+    int64 total_steps = 5;
+    int64 today_steps = 6;
+    bool is_self = 7;
+    string oid = 8;
+}
+
+message TeamUserRankResponse{
+    metadata.CommonHeader header = 1;
+    string update_time = 2;
+    int64 total = 3;
+    repeated TeamUserRank list = 4;
+}
+
+// 定制型活动统计
+message ActivityStats{
+    int64 team_cnt = 1;         // 活动的小队数量
+    int64 activity_member = 2;  // 参与活动的总人数
+    int64 team_member = 3;      // 参与小队的总人数
+    string update_time = 4;     // 数据最近更新时间
+    int64 activity_steps = 5;   // 活动的总步数
+}
+
+// 定制型小队统计
+message TeamStats{
+    int64 team_member = 1;      // 参与小队的人数
+    int64 team_steps = 2;       // 小队的总步数
+    int64 team_rank = 3;        // 小队的排名
+}
+
+// 定制型活动用户统计
+message ActivityUserStats{
+    bool join = 1;          // 用户是否加入活动
+    string team_id = 2;     // 用户在活动加入的小队id, 空表示没有加入小队
+    int64 rank = 3;         // 用户在活动的排名, 0表示用户没有加入活动
+    int64 today_steps = 4;  // 用户的今日步数
+    int64 total_steps = 5;  // 用户的活动总步数
+    bool is_creator = 6;    // 用户是否为活动创建者
+    int64 match_money = 7;  // 用户的活动总配捐金额, 分
+    int64 match_steps = 8;  // 用户的活动总捐出步数
+}
+
+// 活动型证书
+message Cert{
+    string org_id = 1;      // 机构id
+    string org_name = 2;    // 机构名称
+    string org_seal = 3;    // 机构印章
+    string serial_number = 4; // 证书编号
+}
+
+message QueryActivityUserStatsRequest{
+    string aid = 1;  // 活动id
+    string oid = 2;  // 用户id
+}
+
+message QueryActivityUserStatsResponse{
+    metadata.CommonHeader header = 1;
+    ActivityStats activity_stats = 2;
+    ActivityUserStats user_stats = 3;
+    metadata.Team team = 4;
+    TeamStats team_stats = 5;
+    Cert cert = 6;
+}
+
+// 参与的活动列表
+message UserJoinActivity{
+    metadata.CustomizedActivity customized_activity = 1;
+    ActivityStats activity_stats = 2;
+    ActivityUserStats activity_user_stats = 3;
+}
+
+// 查询用户参与的活动列表
+message QueryUserJoinActivityRequest{
+    string oid = 1;  // 用户id
+    int64 page = 2;  // 第几页, 0表示第一页
+    int64 size = 3;  // 每页展示的条数
+}
+
+message QueryUserJoinActivityResponse{
+    metadata.CommonHeader header = 1;
+    repeated UserJoinActivity user_join_activities = 2;
+    int64 Total = 3;
+    bool HasCreate = 4; // 是否成功创建过活动型
+}
+
+// 查询小队统计
+message QueryTeamStatsRequest{
+    string aid = 1;     // 活动id
+    string team_id = 2; // 小队id
+}
+
+message QueryTeamStatsResponse{
+    metadata.CommonHeader header = 1;
+    TeamStats team_stats = 2;
+}
+
+// 用户更新步数, 主动更新用户的活动排名等统计
+message UpdateActivityRankStatsRequest{
+    string oid = 1;  // 用户id
+}
+
+message UpdateActivityRankStatsResponse{
+    metadata.CommonHeader header = 1;
+}
+
+
+message GetActivityTeamListRequest {
+    string activity_id = 1;
+    int32 offset = 2;
+    int32 size = 3;
+    int32 type = 4;
+}
+
+message GetActivityTeamListResponse {
+    metadata.CommonHeader header = 1;
+    int32 total = 2;
+    repeated metadata.Team teams = 3;
+}
+
+message UpdateActivityRequest {
+    string activity_id = 1;
+    metadata.Activity activity = 2;
+    metadata.MatchInfo match_info = 3;
+    metadata.MatchRule match_rule = 4;
+    repeated string white_list = 5;
+}
+
+message UpdateActivityResponse {
+    metadata.CommonHeader header = 1;
+}
+
+
+message DeleteActivityRequest {
+    enum Ops{
+        UNKNOWN = 0;
+        SYSTEM = 1;
+        USER = 2;
+    }
+    string activity_id = 1;
+    string Operator = 2;
+    Ops opType = 3;
+}
+
+message DeleteActivityResponse {
+    metadata.CommonHeader header = 1;
+}
+
+message DeleteActivityTeamRequest {
+    string activity_id = 1;
+    string team_id = 2;
+}
+
+message DeleteActivityTeamResponse {
+    metadata.CommonHeader header = 1;
+}
+
+message GetTeamUserRequest{
+    string oid = 1;
+    string team_id = 2;
+    string activity_id = 3;
+    int32 page =4;
+    int32 size =5;
+}
+
+message GetTeamUserResponse{
+    metadata.CommonHeader header = 1;
+    repeated metadata.TeamMember list = 2;
+}
+
+message GetTeamsByUsersRequest {
+    string aid = 1;
+    repeated string oids = 2;
+}
+
+message TeamsByUsers {
+    repeated metadata.Team list = 1;
+}
+
+message GetTeamsByUsersResponse{
+    metadata.CommonHeader header = 1;
+    map<string, TeamsByUsers> teams = 2;
+}
+
+message ChangeTeamLeaderRequest {
+    string oid = 1;
+    string team_id = 2;
+    string activity_id = 3;
+    string operator_oid = 4;
+}
+
+message ChangeTeamLeaderResponse{
+    metadata.CommonHeader header = 1;
+}
+
+//
+message DeleteActivityUserRequest{
+    enum OpsType {
+        PLATFORM = 0;
+        MOBILE = 1;
+    }
+    string aid = 1;
+    string oid = 2;
+    OpsType ops_type = 3;
+}
+
+message DeleteActivityUserResponse{
+    metadata.CommonHeader header = 1;
+    bool result = 2;
+}
+
+message QueryActivitySuccessNumRequest {
+
+}
+
+message QueryActivitySuccessNumResponse {
+    metadata.CommonHeader header = 1;
+    int32 num = 2;
+}

@@ -1,0 +1,359 @@
+//
+syntax = "proto3";
+package metadata;
+option go_package = "git.code.oa.com/gongyi/donate_steps/api/metadata";
+
+
+message CommonHeader {
+    string msg = 1;
+    int32 code = 2;
+    int64 op_time = 3;
+}
+
+message MatchRecord {
+    enum OPType{
+        UNKNOWN = 0;
+        NORMAL = 1;
+        BUFF = 2;
+    }
+    int32 funds = 1;     // match funds today, if have not match is 0
+	int32 steps = 2;     // match step today, if have not match is 0
+	string item = 3;     // user match item 
+	OPType op = 4;       // user match op 
+	string date = 5;     // 2006-01-02
+    int32 combo = 6;
+    string organization = 7;
+    string id = 8;
+    string activity_id = 9;
+    int32 t_funds = 10;
+    int32 t_steps = 11;
+    int32 t_times = 12;
+    repeated LoveCoupons coupons = 13;
+}
+
+
+message MatchStatus {
+    int64 funds = 1;
+    int64 steps = 2;
+    int32 times = 3;
+    int32 days = 4;
+    string date = 5;
+}
+
+// 项目信息
+message ProjectInfo {
+    string pid = 1;     // 项目id
+    string title = 2;   // 项目标题
+    string img = 3;     // 项目图片
+    string ext_donate = 4; // 项目额外信息
+}
+
+// 企业信息
+message CompanyInfo {
+    string company_id = 1;      // 企业id
+    string company_sn = 2;      // 企业简称, short-name的简写
+    string company_fn = 3;      // 企业全称, full-name的简写
+    string company_logo = 4;    // 企业logo
+}
+
+// 配捐防刷规则
+message AntiBlack {
+    string start_time = 1;
+    string end_time = 2;
+    int64 steps = 3;
+    int64 money = 4;
+}
+
+// 配捐防刷规则集合
+message AntiBlackRules {
+    repeated AntiBlack anti_blacks = 1;
+}
+
+// 剩余配捐规则
+message RemainMatchRule {
+    int64 interval_start = 1;   // 剩余金额区间, 分 [0, 15) 半开区间
+    int64 interval_end = 2;     // 剩余金额区间, 分
+    int64 match_start = 3;      // 配捐金额区间, 分 [0.1, 1] 闭区间
+    int64 match_end = 4;        // 配捐金额区间, 分
+}
+
+// 剩余配捐规则集合
+message RemainMatchRules {
+    repeated RemainMatchRule remain_match_rules = 1;
+}
+
+// 配捐活动基础信息
+message MatchInfo {
+    enum Status {
+        PREPARE = 0;            // 活动未开始
+        RUNNING = 1;            // 活动进行中
+        SPENT_FINISH = 2;       // 配捐完成, 用完配捐金额
+        EXPIRED = 3;            // 配捐时间结束, 未用完配捐金额
+    }
+    enum MatchMode {
+        MODE_AVERAGE = 0;       // 平均配捐(小池子, 每日上限)
+        MODE_TOTAL = 1;         // 累计配捐(大池子, 无每日上限)
+        MODE_REMAIN = 2;        // 剩余配捐(根据剩余金额决定配捐金额)
+    }
+    string f_event_id = 1;      // 配捐活动id
+    string f_company_id = 2;    // 企业id
+    string f_pid = 3;           // 项目id
+    string f_rule_id = 4;       // 活动规则id
+    int64  f_target_fund = 5;   // 活动总的配捐目标金额, 单位分
+    int32  f_match_type = 6;    // 活动类型
+    string f_start_time = 7;    // 活动开始时间, 格式: "2006-01-02 15:04:05"
+    string f_end_time = 8;      // 活动结束时间, 格式: "2006-01-02 15:04:05"
+    int32  f_status = 9;        // 活动状态, 用 enum Status 表示
+    string f_create_time = 10;  // db记录创建时间
+    string f_modify_time = 11;  // db记录修改时间
+    int32  f_match_mode = 12;   // (待废弃, 用v2版本替代) 配捐模式 0表示平均配捐（小池子每日上限） 1表示累计配捐（大池子）
+    int64  f_remind_fund = 13;  // 配捐活动剩余金额消息提醒, 单位分
+    AntiBlackRules f_anti_black = 14; // 防刷规则
+    MatchMode f_match_mode_v2 = 15; // 配捐模式 0表示平均配捐（小池子每日上限） 1表示累计配捐（大池子） 2表示剩余配捐（根据剩余金额配捐）
+    string f_certificate = 16;  // 捐赠凭证
+    bool f_love_coupon = 17;
+}
+
+// 配捐活动统计
+message MatchStats {
+    int64 money = 1;    // 活动当前已配捐金额, 单位分
+    int64 remain = 2;   // 活动今天剩余配捐金额, 前面未配完的金额会累计到今天, 单位分
+    int64 cnt = 3;      // 活动当前已配捐人次
+    int64 steps = 4;    // 活动当前已配捐步数
+}
+
+// 配捐规则
+message MatchRule {
+    enum RuleType {
+        BUFF_COMBO = 0;     // BUFF连续配捐规则
+        BUFF_PERCENT = 1;   // BUFF百分比配捐规则
+        REMAIN = 2;         // 剩余配捐规则
+        STEP_RELATIVE = 3;  // 剩余配捐规则
+    }
+    string rule_id = 1;     // 规则id
+    RuleType rule_type = 2; // 规则类型
+    int32  status = 3;      // 规则状态, 预留
+    int32  match_quota = 4; // 配捐最低捐步步数
+    BuffComboRule buff_combo_rule = 5; // buff连续配捐
+    BuffPercentRule buff_percent_rule = 6; // buff百分比配捐
+    RemainMatchRules remain_match_rules = 7; // 剩余配捐规则
+    StepRelativeRule step_relative_rule = 8; // step relative rule
+}
+
+
+
+// 配捐活动
+message MatchActivity {
+    MatchInfo match_info = 1;   // 活动基础信息
+    MatchRule match_rule = 2;   // 配捐规则
+    MatchStats match_stats = 3; // 活动统计
+    ProjectInfo project = 4;    // 项目信息
+    CompanyInfo company = 5;    // 企业信息
+}
+
+// Buff基本规则
+message BuffMeta {
+    int32 basic_fund = 1;    // 基础配捐平均金额（分）
+    int32 basic_wave = 2;    // 基础配捐波动值（分）
+    int32 buff_fund = 3;     // BUFF配捐平均金额（分）
+    int32 buff_wave = 4;     // BUFF配捐波动值（分）
+}
+
+// BUFF连续配捐规则
+message BuffComboRule {
+    BuffMeta buff_meta = 1; // buff配捐基本规则
+    int32 buff_threshold = 2; // 触发buff的连续配捐次数
+}
+
+// BUFF百分比配捐规则
+message BuffPercentRule {
+    BuffMeta buff_meta = 1; // buff配捐基本规则
+    int32 buff_percent = 2; // buff配捐百分比
+}
+
+// 定制型活动基础配置
+message Activity {
+    enum Status {
+        DRAFT = 0;      // 未审核(手机端发起支付成功才审核通过)
+        READY = 1;      // 活动未开始
+        RUNNING = 2;    // 活动进行中
+        EXPIRED = 3;    // 活动已结束（时间过期）
+        STOP = 4;       // 活动停止（运营平台手动停止）
+        SUSPEND = 5;    // 活动暂停（运营平台手动暂停）
+    }
+    enum CreateType {
+        PLATFORM = 0;   // 运营平台发起
+        MOBILE = 1;     // 移动端发起
+    }
+    enum WhiteType {
+        None = 0;       // 什么都不需要
+        WhiteList = 1;  // 需要白名单
+    }
+    string activity_id = 1;     // 活动id
+    string match_id = 2;        // 配捐活动id
+    string activity_creator = 3;// 活动创建者id
+    CreateType type = 4;        // 活动发起类型(运营平台或手机端发起)
+    string desc = 5;            // 活动描述
+    string slogan = 6;          // 活动口号
+    string route_id = 7;        // 地图id
+    string bgpic = 8;           // 活动自定义主题图片
+    int32 bgpic_status = 9;     // 自定义图片审核状态
+    string start_time = 10;     // 活动开始时间
+    string end_time = 11;       // 活动结束时间
+    int32 team_mode = 12;       // 小队模式 0：活动有小队用户不必须加入队伍 1：活动有小队并且用户必须加入小队 2：活动无小队
+    int32 team_off = 13;        // 是否开放组队 0表示开放组队, 1表示关闭组队
+    int32 team_member_limit = 14;// 小队人数上限
+    Status status = 15;         // 活动状态 0：未审核(手机端发起支付成功才审核通过)  1：活动未开始  2：活动进行中  3：活动已结束（时间过期） 4：活动停止（运营平台手动停止）
+    repeated string default_teams = 16; // 默认小队名称列表
+    string org_name = 17;       // 团队/企业名称
+    string org_head = 18;       // 团队/企业头像
+    int32 show_sponsor = 19;    // 是否展示发起人信息（适用于移动端发起）, 0表示不展示发起人信息, 1表示展示发起人信息
+    int32 match_off = 20;       // 是否支持配捐 0表示支持配捐, 1表示不支持配捐, 默认活动支持配捐
+    string rule = 21;
+    string color =22;           // 活动主色
+    string company_id = 23;// 活动创建企业id(运营平台)
+    bool supp_coupons =24;      // 是否支持爱心券
+    WhiteType white_type = 25;      // 白名单类型，0表示不需要，1表示要白名单
+    string create_time =26; // 创建时间
+    string cover = 27;          // 活动封面图片地址
+    string relation_desc = 28;  // 活动关联描述(把一些活动关联起来)
+    string forward_pic = 29;  // 转发图片地址
+}
+
+// 小队基础配置
+message Team {
+    enum TeamFlag {
+        USER_TEAM = 0; // 用户创建的小队
+        SYS_TEAM = 1;  // 运营平台创建的系统默认小队
+    }
+    string activity_id = 1; // 活动id
+    string team_id = 2;     // 小队id
+    int32 team_type = 3;    // 小队类型, 默认小队/私密小队
+    string team_desc = 4;   // 小队名称
+    string team_creator = 5;// 小队创建者
+    string team_leader = 6; // 小队队长
+    int32 status = 7;       // 小队状态, 1 正常 2 解散(系统默认小队不能解散)
+    TeamFlag team_flag = 8; // 小队标签, 区分用户创建和系统创建的小队
+    int32 team_leader_rank = 9; // 队长在小队的排名
+    int64 team_funds = 10; // 小队公益金    
+}
+
+// 定制型活动
+message CustomizedActivity {
+    Activity activity = 1;  // 活动基础配置
+    MatchActivity match = 2;// 活动配捐功能配置
+}
+
+// user step data
+message UserSteps {
+    string oid = 1; // user id
+    map<string, int32> steps = 2; // date - step
+}
+
+// 定制型活动成员
+message ActivityMember {
+    string activity_id = 1; // 活动id
+    string user_id = 2;    // 用户id
+    int32 status = 3;       // 状态, 预留
+    string create_time = 4; // 创建时间
+}
+
+// 定制型小队成员
+message TeamMember {
+    string activity_id = 1; // 活动id
+    string team_id = 2;    // 小队id
+    string user_id = 3;    // 用户id
+    int32 in_team = 4;       // 1 表示未参与活动，2 表示参与活动
+    int32 status = 5;       // 状态, 预留
+    string create_time = 6; // 创建时间
+}
+
+/****** for comment function ******/
+message UserInfo {
+    string oid = 1;
+    string nick = 2;
+    string head = 3;
+}
+
+enum CommentType {
+    CommentType_SYSTEM = 0;
+    CommentType_USER = 1;
+}
+
+enum TargetType {
+    TargetType_YQZ = 0;
+    TargetType_COMMENT = 1;
+    TargetType_ACTIVITY = 2;
+    //REPLY = 3;
+}
+
+
+message UserRank {
+    string oid = 1;
+    int32 rank = 2;
+    int32 fund = 3;
+}
+
+message CompanyRank {
+    string id = 1;
+    string name = 2;
+    string pic = 3;
+    int64 fund = 4;
+    int32 rank = 5;
+    int64 times = 6;
+    string date = 7;
+}
+
+// 步数相关配捐规则
+message StepRelativeRule {
+    int32 min_steps = 1; 
+    int32 max_steps = 2; 
+    int32 min_match = 3; 
+    int32 max_match = 4; 
+}
+
+// 定制型活动成员白名单
+message ActivityWhiteList {
+    string activity_id = 1; // 活动id
+    string phone_num = 2;    // 手机号码
+    int32 status = 3;       //
+    string create_time = 4; // 创建时间
+}
+
+// User pk profile
+message UserPKProfile {
+    int32 thumb = 1;
+    int32 smile = 2;
+    int32 bomb = 3;
+    string user_id = 4;
+}
+
+// User pk interact
+message UserPKInteract {
+    enum InteractType {
+        NO_INTERACT = 0;
+        THUMB = 1;
+        SMILE = 2;
+        BOMB = 3;
+    }
+    enum InteractOps {
+        NO_OPS = 0;
+        PLUS = 1;
+        MINUS = 2;
+    }
+    string user_id = 1;
+    string to_user_id = 2;
+    InteractType interact = 3;
+    InteractOps op = 4;
+    string date = 5;
+}
+
+// User pk history 
+message UserPKHistory {
+    int32 thumb = 1;
+    int32 smile = 2;
+    int32 bomb = 3;
+    string user_id = 4;
+    string to_user_id = 5;
+    string date = 6;
+}

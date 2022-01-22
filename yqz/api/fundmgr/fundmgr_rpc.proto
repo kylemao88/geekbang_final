@@ -1,0 +1,183 @@
+//
+syntax = "proto3";
+package fundmgr;
+option go_package = "git.code.oa.com/gongyi/yqz/api/fundmgr";
+
+import "common_meta.proto";
+
+message GetUserWeekMatchRecordRequest{
+    string oid = 1;
+    string start = 2;
+    string end = 3;
+    string activity_id = 4;
+}
+
+message GetUserWeekMatchRecordResponse{
+    metadata.CommonHeader header = 1;
+    repeated metadata.MatchRecord records = 2;
+    map<string, metadata.MatchActivity> activity_info = 3;
+}
+
+message GetUserMatchRecordByOffsetRequest{
+    string oid      = 1;
+    int32 offset    = 2;
+    int32 size      = 3;
+    string activity_id = 4;
+}
+
+message GetUserMatchRecordByOffsetResponse{
+    metadata.CommonHeader header = 1;
+    int32 total_funds = 2;
+    int32 total_steps = 3;
+    int32 total_times = 4;
+    repeated metadata.MatchRecord records = 5;
+    map<string, metadata.MatchActivity> activity_info = 6;
+    map<string, metadata.Activity> user_activity = 7;
+}
+
+message GetUserTodayMatchRequest{
+    string oid = 1;
+    string activity_id = 2;
+}
+
+message GetUserTodayMatchResponse{
+    metadata.CommonHeader header = 1;
+    // user data
+	bool match_flag = 2; // user match today or not
+    metadata.MatchRecord records = 3;
+	int32 combos = 7;     // user match combo
+    // activity data
+    metadata.MatchActivity activity_info = 10;
+}
+
+message GetUserMatchDonateRequest{
+    string oid = 1;
+    string activity_id = 3;
+}
+
+message GetUserMatchDonateResponse{
+    metadata.CommonHeader header = 1;
+    // user match data
+    metadata.MatchStatus match_status = 2;
+    // activity data
+    metadata.MatchActivity activity_info = 3;
+}
+
+message UserMatchRequest{
+    string oid = 1;
+    int32 steps = 2;
+    string activity_id = 3;
+}
+
+message UserMatchResponse{
+    enum Result {
+        SUCCESS = 0;
+        FAILED_MATCH_END = 1;
+        FAILED_STEP_NOT_ENOUGH = 2;
+        FAILED_ALREADY_MATCH = 3;
+    }
+    metadata.CommonHeader header = 1;
+    Result result = 2;
+    metadata.MatchRecord records = 3;
+}
+
+message CreateMatchEventRequest{
+    metadata.MatchInfo match_info = 1;
+    metadata.MatchRule match_rule = 2;
+}
+
+message CreateMatchEventResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    metadata.MatchActivity match_event = 2;
+    Status status = 3;
+}
+
+message GetMatchEventRequest{
+    string eid = 1;
+}
+
+message GetMatchEventResponse{
+    enum Status {
+        SUCCESS = 0;
+        INTERNAL_ERROR = 1;
+    }
+    metadata.CommonHeader header = 1;
+    metadata.MatchActivity match_event = 2;
+    Status status = 3;
+}
+
+message UpdateMatchRequest {
+    string match_id = 1;
+    metadata.MatchInfo match_info = 2;
+    metadata.MatchRule match_rule = 3;
+}
+
+message UpdateMatchResponse {
+    metadata.CommonHeader header = 1;
+}
+
+message GetActivityMatchRankRequest {
+    string activity_id = 1;
+    int32 offset = 2;
+    int32 size = 3;
+}
+
+message GetActivityMatchRankResponse {
+    metadata.CommonHeader header = 1;
+    repeated metadata.UserRank user_rank = 2;
+    int32 total = 3;
+}
+
+message GetActivityMatchInfoRequest{
+    string activity_id = 1; // if activity is null, get yqz match
+}
+
+message GetActivityMatchInfoResponse{
+    metadata.CommonHeader header = 1;
+    // activity data
+    metadata.MatchActivity activity_info = 2;
+}
+
+message RemoveUserActivityMatchInfoRequest{
+    string activity_id = 1; 
+    string oid = 2;
+}
+
+message RemoveUserActivityMatchInfoResponse{
+    metadata.CommonHeader header = 1;
+}
+
+message RecoverActivityUserMatchRankRequest{
+    string activity_id = 1; 
+    string oid = 2;
+}
+
+message RecoverActivityUserMatchRankResponse{
+    metadata.CommonHeader header = 1;
+}
+
+message GetCompanyMatchRankRequest{
+    int32 offset = 1;
+    int32 size = 2;
+}
+
+message GetCompanyMatchRankResponse{
+    metadata.CommonHeader header = 1;
+    int64 total_user = 2;
+    int64 total_company = 3;
+    int64 total_fund = 4;
+    string stat_date = 5;
+    repeated metadata.CompanyRank companies = 6;
+}
+
+message RemoveCompanyMatchRankRequest{
+    string company_id = 1;
+}
+
+message RemoveCompanyMatchRankResponse{
+    metadata.CommonHeader header = 1;
+}
